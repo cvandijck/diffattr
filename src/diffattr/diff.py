@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Generator, Optional
+from typing import Any, Generator, Optional, Union
 
 
 @dataclass
@@ -7,22 +7,26 @@ class Diff:
     path: str
     ref: Any
     test: Any
+    loc: Optional[Union[int, str]] = None
 
 
 PRIMITIVE_TYPES = (int, float, str, bool, type(None))
 
 
 def _yield_diffs(
-    ref: Any, test: Any, prefix_path: str = ''
+    ref: Any,
+    test: Any,
+    prefix_path: str = '',
+    loc: Optional[Union[int, str]] = None,
 ) -> Generator[Diff, None, None]:
     # if different types, yield directly a diff
     if type(ref) is not type(test):
-        yield Diff(path=prefix_path + '', ref=ref, test=test)
+        yield Diff(path=prefix_path + '', ref=ref, test=test, loc=loc)
         return
 
     # if they are not equal, directly yield a diff
     if ref != test:
-        yield Diff(path=prefix_path + '', ref=ref, test=test)
+        yield Diff(path=prefix_path + '', ref=ref, test=test, loc=loc)
 
     # if type is primitive diff has been handled already, return
     if isinstance(ref, PRIMITIVE_TYPES):
@@ -31,28 +35,34 @@ def _yield_diffs(
     # if type is a sequence, check the elements
     elif isinstance(ref, (list, tuple, set)):
         for i, (r, t) in enumerate(zip(ref, test)):
-            yield from _yield_diffs(r, t, prefix_path + f'[{i}]')
+            yield from _yield_diffs(r, t, prefix_path + f'[{i}]', loc=i)
 
     # if type is a dict, check the items
     elif isinstance(ref, dict):
         for key in ref.keys():
             r_value = ref.get(key)
             t_value = test.get(key)
-            yield from _yield_diffs(r_value, t_value, prefix_path + f'[{key}]')
+            yield from _yield_diffs(
+                r_value, t_value, prefix_path + f'[{key}]', loc=key
+            )
 
     # if type is a custom object, check the attributes
     elif hasattr(ref, '__dict__'):
         for attr in ref.__dict__.keys():
             r_value = getattr(ref, attr)
             t_value = getattr(test, attr, None)
-            yield from _yield_diffs(r_value, t_value, prefix_path + f'.{attr}')
+            yield from _yield_diffs(
+                r_value, t_value, prefix_path + f'.{attr}', loc=attr
+            )
 
     # bit different for slots
     elif hasattr(ref, '__slots__'):
         for attr in ref.__slots__:
             r_value = getattr(ref, attr)
             t_value = getattr(test, attr, None)
-            yield from _yield_diffs(r_value, t_value, prefix_path + f'.{attr}')
+            yield from _yield_diffs(
+                r_value, t_value, prefix_path + f'.{attr}', loc=attr
+            )
 
     # lord have mercy on us
     else:

@@ -12,6 +12,7 @@ def test_diff_types():
     assert diffs[0].ref == ref
     assert diffs[0].test == test
     assert diffs[0].path == ''
+    assert diffs[0].loc is None
 
 
 def test_diff_int():
@@ -23,6 +24,7 @@ def test_diff_int():
     assert diffs[0].ref == ref
     assert diffs[0].test == test
     assert diffs[0].path == ''
+    assert diffs[0].loc is None
 
 
 def test_same_int():
@@ -42,6 +44,7 @@ def test_diff_string():
     assert diffs[0].ref == ref
     assert diffs[0].test == test
     assert diffs[0].path == ''
+    assert diffs[0].loc is None
 
 
 def test_same_string():
@@ -61,10 +64,12 @@ def test_diff_list():
     assert diffs[0].ref == ref
     assert diffs[0].test == test
     assert diffs[0].path == ''
+    assert diffs[0].loc is None
 
     assert diffs[1].ref == 3
     assert diffs[1].test == 4
     assert diffs[1].path == '[2]'
+    assert diffs[1].loc == 2
 
 
 def test_same_list():
@@ -84,10 +89,12 @@ def test_diff_tuple():
     assert diffs[0].ref == ref
     assert diffs[0].test == test
     assert diffs[0].path == ''
+    assert diffs[0].loc is None
 
     assert diffs[1].ref == 3
     assert diffs[1].test == 4
     assert diffs[1].path == '[2]'
+    assert diffs[1].loc == 2
 
 
 def test_same_tuple():
@@ -111,6 +118,7 @@ def test_diff_set():
     assert diffs[1].ref == 3
     assert diffs[1].test == 4
     assert diffs[1].path == '[2]'
+    assert diffs[1].loc == 2
 
 
 def test_same_set():
@@ -134,6 +142,7 @@ def test_diff_dict():
     assert diffs[1].ref == 'value2'
     assert diffs[1].test == 'value3'
     assert diffs[1].path == '[key2]'
+    assert diffs[1].loc == 'key2'
 
 
 def test_same_dict():
@@ -158,18 +167,22 @@ def test_diff_nested():
     assert diffs[1].ref == [1, 2, {'nested_key': 'value1'}]
     assert diffs[1].test == [1, 3, {'nested_key': 'value2'}]
     assert diffs[1].path == '[key1]'
+    assert diffs[1].loc == 'key1'
 
     assert diffs[2].ref == 2
     assert diffs[2].test == 3
     assert diffs[2].path == '[key1][1]'
+    assert diffs[2].loc == 1
 
     assert diffs[3].ref == {'nested_key': 'value1'}
     assert diffs[3].test == {'nested_key': 'value2'}
     assert diffs[3].path == '[key1][2]'
+    assert diffs[3].loc == 2
 
     assert diffs[4].ref == 'value1'
     assert diffs[4].test == 'value2'
     assert diffs[4].path == '[key1][2][nested_key]'
+    assert diffs[4].loc == 'nested_key'
 
 
 def test_same_nested():
