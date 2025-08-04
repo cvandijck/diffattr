@@ -13,7 +13,6 @@ BUILD_WHEEL_DIR = $(BUILD_DIR)/wheel
 BUILD_TEST_DIR = $(BUILD_DIR)/test
 
 UV = uv
-CREATE_ENV_CMD=$(UV) venv --python $(PYTHON_VERSION) $(VENV_NAME)
 ifeq ($(MAKE_OS), Windows)
 	PYTHON = $(VENV_NAME)\Scripts\python
 	ACTIVATE = $(VENV_NAME)\Scripts\activate
@@ -24,20 +23,27 @@ endif
 
 PIP = $(RUN_MODULE) pip
 
-install: create-env install-project install-pre-commit
+install: create-env install-project install-pre-commit activate-help
 
 create-env:
 	$(info MAKE: Initializing environment in .venv ...)
-	$(CREATE_ENV_CMD)
+	$(UV) venv --python $(PYTHON_VERSION) $(VENV_NAME) --seed
 	$(UV) pip install --upgrade "pip>=24"
 
 install-project:
 	$(info MAKE: Installing project ...)
-	$(UV) sync
+	$(UV) sync --all-packages
+
+upgrade-project:
+	$(info MAKE: Upgrade project dependencies ...)
+	$(UV) sync --upgrade --all-packages
 
 install-pre-commit:
 	$(info MAKE: Installing pre-commit hooks...)
 	$(UV) run pre-commit install
+
+activate-help:
+	$(info MAKE: To activate the virtual environment, run: $(ACTIVATE))
 
 test:
 	$(info MAKE: Running tests ...)
